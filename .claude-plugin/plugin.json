@@ -1,0 +1,12 @@
+{
+  "name": "fluid",
+  "version": "1.0.0",
+  "description": "Breakpoint-free modern-responsive + Arabic-RTL skill suite: build, review, explain. Describe the rule, don't enumerate the widths.",
+  "author": { "name": "Khaled Taymour" },
+  "homepage": "https://github.com/KhaledTaymour/fluid-skills",
+  "repository": "https://github.com/KhaledTaymour/fluid-skills",
+  "license": "MIT",
+  "keywords": ["tailwind", "responsive", "rtl", "css", "container-queries"],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
+}

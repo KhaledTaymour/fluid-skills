@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "fluid-skills",
+  "description": "The fluid suite — modern responsive CSS + RTL, as Tailwind.",
+  "owner": { "name": "Khaled Taymour", "url": "https://github.com/KhaledTaymour" },
+  "plugins": [
+    {
+      "name": "fluid",
+      "description": "Breakpoint-free responsive + Arabic-RTL skill suite for Tailwind codebases.",
+      "source": "./",
+      "category": "development"
+    }
+  ]
+}
