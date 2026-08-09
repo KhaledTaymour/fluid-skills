@@ -63,29 +63,36 @@ const CHECKS = [
   { id: "safe-area-into-fixed-height", label: "safe-area inset padded into a fixed height",
     test: l => /(?<![\w-])h-(?:\d+(?:\.\d+)?|\[(?![^\]]*(?:--safe-|env\(safe-area-inset-|vh|%))[^\]]*\])/.test(l)
             && (/p[tb]-\[[^\]]*(?:safe-area-inset|--safe-)/.test(l)
-             || /(?:^|["'`\s])p[tb]-safe-[tb]\b/.test(l)
+             || /(?:^|["\'`\s])p[tb]-safe-[tb]\b/.test(l)
              || /padding-(?:top|bottom)\s*:\s*env\(\s*safe-area-inset-/.test(l)),
     fix: "ADD it to the height: h-[calc(3.5rem+env(safe-area-inset-top))] — border-box subtracts padding from height" },
   // A bare env() is 0 on desktop and every non-notched device, so it deletes the design
-  // spacing that was there before. Checked per occurrence, not per line: one correctly
-  // floored inset must not silence a bare one later in the same className.
-  // Not flagged when the same element's height already folds the inset in: that pair —
-  // h-[calc(3.5rem+env(...))] with a bare pt-[env(...)] — is rule 9's recommended form,
-  // and a max() on that padding would wrongly push content down on a non-notched screen.
+  // spacing that was there before. Judged per occurrence and per edge, so neither a
+  // floored inset nor a height folding in a *different* edge can silence a bare one.
   { id: "safe-area-no-floor", label: "bare env(safe-area-inset-*) with no max() floor",
-    test: l => hasUnflooredInset(l) && !INSET_BEARING_HEIGHT.test(l),
+    test: l => [...unflooredInsetEdges(l)].some(edge => !heightFoldsIn(l, edge)),
     fix: "max(env(safe-area-inset-bottom), 1rem) — a bare env() is 0 off-device and removes your spacing" },
 ];
 
-const INSET_BEARING_HEIGHT = /(?<![\w-])h-\[[^\]]*(?:--safe-|env\(safe-area-inset-)/;
 
-// True when some env(safe-area-inset-*) on the line is unprotected. Protected means:
-// wrapped in max()/clamp() (an explicit floor), folded into a calc() with another term
-// (which floors implicitly — `calc(3.5rem + env(...))` is 3.5rem when the inset is 0),
-// or defining a custom property. Walks back through balanced parens to find the
-// enclosing function, so it judges each occurrence on its own context.
-function hasUnflooredInset(line) {
-  const re = /env\(\s*safe-area-inset-/g;
+// The pair `h-[calc(3.5rem+env(top))]` + a bare `pt-[env(top)]` is rule 9's recommended
+// form — the height absorbs the inset, so a max() on that padding would wrongly push
+// content down off-device. Only exempts the edge the height actually folds in.
+const EDGE_TOKEN = { top: "t", bottom: "b" };
+function heightFoldsIn(line, edge) {
+  const short = EDGE_TOKEN[edge];
+  if (!short) return false; // no height folds in a left/right inset
+  return new RegExp(`(?<![\\w-])h-\\[[^\\]]*(?:--safe-${short}\\b|env\\(\\s*safe-area-inset-${edge})`).test(line);
+}
+
+// Edges whose env(safe-area-inset-*) is unprotected on this line. Protected means:
+// wrapped in max()/clamp(); folded into a calc() that has another term (so it floors
+// implicitly — `calc(3.5rem + env(x))` is 3.5rem when the inset is 0, but `calc(env(x))`
+// is still 0); or defining a custom property. Walks back through balanced parens so each
+// occurrence is judged on its own context rather than the whole line.
+function unflooredInsetEdges(line) {
+  const edges = new Set();
+  const re = /env\(\s*safe-area-inset-(top|bottom|left|right)/g;
   let m;
   while ((m = re.exec(line))) {
     const before = line.slice(0, m.index);
@@ -97,13 +104,26 @@ function hasUnflooredInset(line) {
       else if (ch === "(") {
         if (depth > 0) { depth--; continue; }
         const fn = (before.slice(0, i).match(/([\w-]+)$/) || ["", ""])[1];
-        if (fn === "max" || fn === "calc" || fn === "clamp") guarded = true;
+        if (fn === "max" || fn === "clamp") guarded = true;
+        else if (fn === "calc") guarded = calcHasOtherTerm(line, i);
         break;
       }
     }
-    if (!guarded) return true;
+    if (!guarded) edges.add(m[1]);
   }
-  return false;
+  return edges;
+}
+
+// A calc() only floors the inset if something else in it is a length. Strip the env()
+// calls out of the body and look for what is left.
+function calcHasOtherTerm(line, openParenIndex) {
+  let depth = 0, close = line.length;
+  for (let i = openParenIndex; i < line.length; i++) {
+    if (line[i] === "(") depth++;
+    else if (line[i] === ")" && --depth === 0) { close = i; break; }
+  }
+  const body = line.slice(openParenIndex + 1, close).replace(/env\([^()]*\)/g, "");
+  return /\d*\.?\d+(?:rem|px|em|ch|vh|vw|%)|var\(/.test(body);
 }
 
 let CURRENT = "";
@@ -138,6 +158,40 @@ async function filesFromStdin() {
   } catch {
     return [];
   }
+}
+
+// `node scan.mjs --self-test` — fixtures for the safe-area checks, which are the only
+// ones with hand-rolled logic rather than a single regex. Kept beside the code because
+// this file sits outside every test runner; two review rounds turned on its behaviour.
+const SELF_TEST = [
+  // [class string, should it flag?]
+  ["h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]", false], // rule 9's own form
+  ["h-[calc(3.5rem+var(--safe-t))] pt-safe-t", false],                                // tokenised equivalent
+  ["h-[90svh] pb-[max(var(--safe-b),1.25rem)]", false],                               // outer size + floor
+  ["min-h-14 pt-safe-t", false],                                                      // min-height grows
+  ["pb-[max(env(safe-area-inset-bottom),1rem)]", false],                              // explicit floor
+  ["h-[calc(3.5rem-1px)] pt-safe-t", true],                                           // fixed height in a calc
+  ["h-14 pt-safe-t", true],                                                           // the classic
+  ["pb-[max(var(--safe-b),2rem)] pt-[env(safe-area-inset-top)]", true],               // bare one after a floored one
+  ["h-[calc(3.5rem+env(safe-area-inset-top))] pb-[env(safe-area-inset-bottom)]", true], // height folds a DIFFERENT edge
+  ["pb-[calc(env(safe-area-inset-bottom))]", true],                                   // calc with no other term
+  [":root{--safe-t:env(safe-area-inset-top,0px)}", false],                            // the token definition itself
+];
+
+if (process.argv.includes("--self-test")) {
+  const safeChecks = CHECKS.filter(c => c.id.startsWith("safe-area-"));
+  let failed = 0;
+  for (const [line, expected] of SELF_TEST) {
+    const got = safeChecks.some(c => c.test(line));
+    if (got !== expected) {
+      failed++;
+      process.stderr.write(`  FAIL expected ${expected ? "flag" : "silent"}: ${line}\n`);
+    }
+  }
+  process.stdout.write(failed
+    ? `\n❌ scan.mjs self-test: ${failed}/${SELF_TEST.length} failed\n`
+    : `\n✅ scan.mjs self-test: ${SELF_TEST.length}/${SELF_TEST.length} passed\n`);
+  process.exit(failed ? 1 : 0);
 }
 
 const argFiles = process.argv.slice(2);
