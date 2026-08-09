@@ -7,6 +7,21 @@ Each entry: what it looks like, why it's wrong, the fix. The hook scanner (`scri
 - **Why:** doesn't mirror under `dir="rtl"` — breaks Arabic.
 - **Fix:** logical equivalents — `ms-/me- ps-/pe- start-/end- text-start/end border-s/border-e rounded-s/rounded-e`; or `margin-inline-start`, `padding-inline-end`, `inset-inline-start`, `text-align: start`. (Full map: `rtl-checklist.md`.)
 
+## 🔎 Safe-area inset padded into a fixed height
+- **Looks like:** `h-14 pt-[env(safe-area-inset-top)]`; `height: 56px; padding-top: env(safe-area-inset-top)`.
+- **Why:** `border-box` subtracts padding from the declared height instead of adding to it, so the bar's *interior* collapses (56 − 47 = 9pt) and its centred controls spill back into the notch. The inset looks applied and does nothing — worse than omitting it.
+- **Fix:** add it — `h-[calc(3.5rem+env(safe-area-inset-top))] pt-[env(safe-area-inset-top)]`. Exempt: `min-h-`/`max-h-` (the box grows past its padding) and viewport-relative heights like `h-[90svh]` (an outer size, where padding correctly insets content).
+
+## 🔎 Bare `env(safe-area-inset-*)` with no floor
+- **Looks like:** `pb-[env(safe-area-inset-bottom)]`; `padding-bottom: env(safe-area-inset-bottom)`.
+- **Why:** `env()` is `0` on desktop and on every non-notched phone, so this silently *deletes* the design spacing that was there. Same trap in the older two-declaration idiom (`padding-bottom: 48px;` then `padding-bottom: env(…)`), which on a real iPhone lowers 48px to 34px.
+- **Fix:** `pb-[max(env(safe-area-inset-bottom),1rem)]`. Where there genuinely is no design minimum, a bare value is fine — say so in review rather than leaving it ambiguous.
+
+## Viewport-edge surface carrying no inset
+- **Looks like:** a `fixed inset-y-0` drawer, a `fixed bottom-0` bar, or a portalled full-screen dialog, with no `env(safe-area-inset-*)` anywhere on it.
+- **Why:** portalled overlays are not descendants of the app shell, so no ancestor padding reaches them. Each one must carry the insets for the edges it touches. This is the *absent*-inset failure, which the two scanner rules above cannot see — they only catch an inset that stops working.
+- **Fix:** apply insets per edge on the surface itself. Judgment call for `fluid-review`; too noisy to scan mechanically.
+
 ## 🔎 Width media queries for layout
 - **Looks like:** `@media (min-width: …)` / `@media (max-width: …)` in `.css`/`.scss`.
 - **Why:** breakpoints are guesses; they watch the window, not the component; duplicated rules; awkward between steps.

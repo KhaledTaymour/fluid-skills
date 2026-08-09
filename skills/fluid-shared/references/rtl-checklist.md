@@ -30,6 +30,16 @@ The acceptance test and the physical→logical map. A component is RTL-safe when
 | `rounded-l*` / `rounded-r*` | `rounded-s*` / `rounded-e*` |
 | `space-x-*` | prefer `gap-*` (flex/grid) — direction-agnostic |
 
+## Safe-area insets — the one case with no logical equivalent
+`env(safe-area-inset-left)` / `-right` are **physical**, deliberately: they describe the hardware, not the text direction. There is no `-start`/`-end` form. So build the logical pair yourself, once:
+
+```css
+:root      { --safe-s: env(safe-area-inset-left,  0px); --safe-e: env(safe-area-inset-right, 0px); }
+[dir="rtl"]{ --safe-s: env(safe-area-inset-right, 0px); --safe-e: env(safe-area-inset-left,  0px); }
+```
+
+Then components use `ps-[var(--safe-s)]` / `pe-[var(--safe-e)]` and mirror for free — the swap lives in one place instead of an `rtl:` override on every surface. `top`/`bottom` need no such treatment. (Rule 9 in `rules.md`.)
+
 ## Things that are already direction-safe (no change needed)
 - `gap`, `gap-x`/`gap-y`, `flex`/`grid` flow, `justify-*`/`items-*` (logical), `mx-*`/`px-*` (symmetric).
 

@@ -65,6 +65,18 @@ The meta-rule. Express *intent* ("fit as many as you can", "scale between these 
 - **Do:** `min-height: 100svh` (safe — fits even with toolbars) or `100dvh` (resizes live). Tailwind: `min-h-svh` / `min-h-dvh` / `h-dvh` (v3.4+).
 - **Don't:** `height: 100vh` / `min-height: 100vh` / Tailwind `h-screen` / `min-h-screen` for full-height mobile layouts.
 
+## 9. Safe areas — under `viewport-fit=cover` the screen is not all yours
+
+A notched phone reserves strips for the status bar, the home indicator, and — in landscape — the cut-out. `<meta name="viewport" content="…, viewport-fit=cover">` asks for all of them; in exchange **you** must keep content out. Read them with `env(safe-area-inset-top | right | bottom | left)`.
+
+- **Always floor it:** `padding-bottom: max(env(safe-area-inset-bottom), 1rem)`. A bare `env()` is `0` off-device, so it *deletes* spacing you already had. (The old `padding: 48px; padding: env(…)` redeclaration idiom is worse still — on a phone it *lowers* 48px to 34px.)
+- **Add to a fixed height; never pad into one.** Under `border-box`, `height: 3.5rem; padding-top: env(safe-area-inset-top)` shrinks the bar's interior rather than moving it down, and centred controls then spill back into the notch. Use `height: calc(3.5rem + env(safe-area-inset-top))`.
+- **Every viewport-edge-anchored surface owns its own insets.** Padding the app shell cannot reach a `position: fixed` overlay portalled to `<body>` — it isn't a descendant.
+- **`inset-left`/`-right` are physical.** CSS ships no `-start`/`-end` variants. Define your own and swap them under `[dir="rtl"]`, then use `ps-`/`pe-` as normal — see `rtl-checklist.md`.
+- **DevTools cannot show you this.** Device emulation does not simulate safe areas, and a Safari tab hides it because the browser insets for you. Route insets through custom properties so you can override them to fake a device — `env()` itself cannot be faked.
+
+> Why it matters: this class of bug is invisible in dev, in review, and in emulation. It appears only once the app is installed.
+
 ---
 
 ### Mobile-first + RTL defaults (how these combine)

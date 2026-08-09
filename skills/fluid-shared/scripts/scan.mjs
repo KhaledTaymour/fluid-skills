@@ -54,6 +54,24 @@ const CHECKS = [
             || /(?:^|["'`\s])(?:min-h-screen|h-screen)\b/.test(l)
             || /(?:^|["'`\s])(?:min-h|h)-\[100vh\]/.test(l),
     fix: "use 100svh/100dvh → min-h-dvh / min-h-svh / h-dvh (mobile-safe)" },
+  // --- safe areas (notched phones under viewport-fit=cover) ---
+  // A fixed height PLUS a vertical safe-area padding: border-box subtracts the padding
+  // from the height, so the bar's interior collapses and centred controls spill back
+  // into the notch. min-h-/max-h- grow past their padding; vh/%/calc heights declare an
+  // outer size — both are exempt.
+  { id: "safe-area-into-fixed-height", label: "safe-area inset padded into a fixed height",
+    test: l => /(?<![\w-])h-(?:\d+(?:\.\d+)?|\[(?![^\]]*(?:vh|%|calc))[^\]]*\])/.test(l)
+            && (/p[tb]-\[[^\]]*(?:safe-area-inset|--safe-)/.test(l)
+             || /(?:^|["'`\s])p[tb]-safe-[tb]\b/.test(l)
+             || /padding-(?:top|bottom)\s*:\s*env\(\s*safe-area-inset-/.test(l)),
+    fix: "ADD it to the height: h-[calc(3.5rem+env(safe-area-inset-top))] — border-box subtracts padding from height" },
+  // A bare env() is 0 on desktop and every non-notched device, so it deletes the design
+  // spacing that was there before. Custom-property definitions are the exception.
+  { id: "safe-area-no-floor", label: "bare env(safe-area-inset-*) with no max() floor",
+    test: l => /env\(\s*safe-area-inset-/.test(l)
+            && !/\bmax\s*\(/.test(l)
+            && !/--[\w-]+\s*:\s*env\(/.test(l),
+    fix: "max(env(safe-area-inset-bottom), 1rem) — a bare env() is 0 off-device and removes your spacing" },
 ];
 
 let CURRENT = "";
