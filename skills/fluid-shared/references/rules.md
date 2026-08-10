@@ -77,6 +77,16 @@ A notched phone reserves strips for the status bar, the home indicator, and — 
 
 > Why it matters: this class of bug is invisible in dev, in review, and in emulation. It appears only once the app is installed.
 
+**So get it onto a phone.** A LAN address (`http://<lan-ip>:3000`) looks like the cheap option and is a dead end: plain HTTP is not a secure context, so there is no Add to Home Screen and therefore no `display-mode: standalone` — which is the only mode where this bug exists. Secure-context APIs are missing there too, so an app calling one unguarded (`crypto.randomUUID` is the common one) simply throws.
+
+An HTTPS tunnel to the dev server costs one command and gives a real secure origin:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
+
+Then open the printed URL on the phone and **Add to Home Screen** — a browser tab over the tunnel still is not standalone, so the top inset stays ~0 in portrait. Check the API's CORS accepts the tunnel origin.
+
 ---
 
 ### Mobile-first + RTL defaults (how these combine)
