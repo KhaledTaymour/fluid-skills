@@ -1,9 +1,8 @@
 ---
 name: fluid-tailwind
-description: Map a modern-CSS responsive/RTL concept to the correct Tailwind utility for the project's installed Tailwind version (v3 vs v4 differ, especially on container queries). Use when the user types /fluid-tailwind, asks "what's the Tailwind class for clamp / container query / logical margin", "how do I write this in Tailwind here", or another fluid skill needs the version-correct utility.
+description: Map a modern-CSS responsive/RTL concept to the correct Tailwind utility for the project's installed Tailwind version (v3 vs v4 differ, especially on container queries). Use when the user types /fluid-tailwind, asks which Tailwind class expresses clamp, a container query or a logical margin in this repo, or another fluid skill needs the version-correct utility. Do not use for Tailwind installation, config or theming questions.
 model: sonnet
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "<concept | 'all'> [tailwind version]"
 ---
 
