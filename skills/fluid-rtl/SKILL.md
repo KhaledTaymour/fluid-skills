@@ -21,6 +21,7 @@ A focused pass: make a component correct in Arabic (right-to-left) by replacing 
 3. **Convert to logical** using the map in `rtl-checklist.md` (`ms-/me- ps-/pe- start-/end- text-start/end border-s/border-e`; `margin-inline-start`, `inset-inline-start`, `text-align: start`…). Prefer `gap` over `space-x-*`.
 4. **Apply the test:** confirm that setting `dir="rtl"` on an ancestor mirrors the layout with **no other change**. Delete any `[dir=rtl]` overrides made redundant.
 5. **Fix mode:** apply with `--fix` (or on request); else propose.
+   When started by the model rather than a user `/command`, report findings only; apply `--fix` only if the user or the ticket asked for edits.
 
 ## Red flags / rationalizations
 - "Add `[dir=rtl]:` overrides" → no; that's the brittle old way. Use logical properties.

@@ -22,6 +22,7 @@ The quality gate. Catches breakpoint-soup and RTL footguns and turns each into a
 3. **Nuanced pass (judgment):** read the code against `anti-patterns.md` for what the scanner can't safely flag — breakpoint-stepped grids (`sm:grid-cols-1 md:… lg:…` that should be `auto-fit`), `:hover` not gated by `(hover:hover)`, animation without a motion-preference gate, `[dir="rtl"]` override rules.
 4. **For each finding:** report `file:line` → why it's wrong → the **version-correct fix** (detect Tailwind version; confirm utility via `/fluid-tailwind` / context7).
 5. **Fix mode:** if `--fix` (or the user asks), apply the fixes to the working tree; otherwise propose them.
+   When started by the model rather than a user `/command`, report findings only; apply `--fix` only if the user or the ticket asked for edits.
 6. **Re-scan** to confirm the fast-pass findings clear.
 
 ## Red flags / rationalizations
