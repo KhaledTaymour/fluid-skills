@@ -1,9 +1,8 @@
 ---
 name: fluid-build
-description: Turn a design (Figma link, an image/file, or a text description) into a mobile-first, RTL-safe, version-correct Tailwind component using modern breakpoint-free CSS. Use when the user types /fluid-build, shares a Figma URL and wants it built, asks to "implement this design responsively", "build this component mobile-first / RTL-ready", or convert a mockup to code in this repo.
+description: Build a UI component from a design (a Figma URL, a mockup image or file, or a written spec) as mobile-first, RTL-safe, version-correct Tailwind using breakpoint-free CSS. Use when the user types /fluid-build, shares a Figma link or mockup and asks for it to be built or implemented, or asks to build a component mobile-first or RTL-ready. Do not use for small style tweaks to existing code, non-UI work, or questions about a design that do not ask for code.
 model: opus
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "<figma-url | file/image path | text description>"
 ---
 

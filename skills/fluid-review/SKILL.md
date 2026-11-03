@@ -1,9 +1,8 @@
 ---
 name: fluid-review
-description: Audit a file or diff for responsive/RTL anti-patterns (width media queries, physical left/right, fixed px sizing, breakpoint-stepped grids, ungated hover/animation) and propose or apply version-correct Tailwind fixes. Use when the user types /fluid-review, asks to "review this for responsive/RTL", "check before commit", "what will break in Arabic / on mobile", or wants the fluid quality gate on a component.
+description: Audit a UI file or diff for responsive/RTL anti-patterns (width media queries, physical left/right, fixed px sizing, breakpoint-stepped grids, ungated hover/animation) and propose or apply version-correct Tailwind fixes. Use when the user types /fluid-review, asks to review a component or diff for responsive or RTL problems, asks what will break in Arabic or on mobile, or wants the fluid quality gate before committing UI changes. Do not use for general code review, logic bugs, or files with no markup or styles.
 model: opus
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "<file path | 'diff'> [--fix]"
 ---
 

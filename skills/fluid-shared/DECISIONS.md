@@ -13,8 +13,11 @@ Plain English. Each decision is a multiple-choice question: the options we weigh
 **3. Scope** — global (just me) / both / **project-scoped + portable** ✅
 → committed so the team shares it; authored self-contained so it can be lifted to `~/.claude/skills` or published unchanged.
 
-**4. Trigger** — auto / explicit-only / **explicit `/command` + a hook for the auto part** ✅
-→ skills run on purpose (`disable-model-invocation: true`); the always-on nudge lives in the hook, not surprise activation.
+**4. Trigger** — auto / explicit-only / **explicit `/command` + a hook for the auto part** ✅, revised 2026-11-03 to **Claude can also start the 4 working skills** ✅
+→ At first every skill ran on purpose only (`disable-model-invocation: true`), and the always-on nudge lived in the hook.
+→ On 2026-11-03 fluid-build, fluid-review, fluid-rtl and fluid-tailwind dropped the flag, because sessions and subagents could not start them and tickets tell implementers to use them.
+→ Their descriptions now also say when not to fire, so they still stay quiet in unrelated chat.
+→ fluid, fluid-explain and fluid-setup stay explicit-only, since they are a menu, a lesson and a one-time setup check.
 
 **5. Figma input** — MCP-only / PNG-only / link-only / **smart: a link or a file** ✅
 → `fluid-build` detects: a Figma URL → figma MCP; a file/image path → read it.

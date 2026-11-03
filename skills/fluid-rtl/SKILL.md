@@ -1,9 +1,8 @@
 ---
 name: fluid-rtl
-description: RTL-only conformance check — find physical-direction CSS/Tailwind (left/right, ml-/mr-, text-left, border-l, etc.), convert to logical equivalents, and apply the "flip dir, change nothing" test. Use when the user types /fluid-rtl, asks "make this RTL-safe / Arabic-ready", "will this mirror in RTL", or wants only the right-to-left audit (not the full responsive review).
+description: RTL-only conformance check: find physical-direction CSS/Tailwind (left/right, ml-/mr-, text-left, border-l, etc.), convert it to logical equivalents, and apply the "flip dir, change nothing" test. Use when the user types /fluid-rtl, asks to make UI code RTL-safe or Arabic-ready, or asks whether a component mirrors in RTL. Do not use for translation or copy work, or for the full responsive review (that is fluid-review).
 model: sonnet
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "<file or directory path> [--fix]"
 ---
 
